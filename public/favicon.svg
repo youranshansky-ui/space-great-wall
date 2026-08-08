@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark space background -->
+  <circle cx="32" cy="32" r="30" fill="#0a122e"/>
+  <circle cx="32" cy="32" r="29" fill="none" stroke="#d4a853" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Moon surface -->
+  <circle cx="32" cy="37" r="18" fill="#d4a853" opacity="0.9"/>
+
+  <!-- Watchtower body -->
+  <rect x="22" y="25" width="20" height="17" fill="#8899aa"/>
+  <!-- Roof -->
+  <polygon points="18,25 32,16 46,25" fill="#667788"/>
+  <!-- Battlements -->
+  <rect x="24" y="19" width="4" height="3" fill="#aabbcc"/>
+  <rect x="30" y="19" width="4" height="3" fill="#aabbcc"/>
+  <rect x="36" y="19" width="4" height="3" fill="#aabbcc"/>
+  <!-- Arrow slits -->
+  <rect x="26" y="29" width="2.5" height="4" rx="1" fill="#0a122e" opacity="0.9"/>
+  <rect x="31" y="29" width="2.5" height="4" rx="1" fill="#0a122e" opacity="0.9"/>
+  <rect x="36" y="29" width="2.5" height="4" rx="1" fill="#0a122e" opacity="0.9"/>
+  <!-- Door -->
+  <rect x="29" y="36" width="6" height="6" rx="3" fill="#0a122e" opacity="0.9"/>
+</svg>

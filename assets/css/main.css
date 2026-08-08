@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  cursor: none !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: #030614;
+  color: #c8d6e5;
+  font-family: 'Inter', 'PingFang SC', sans-serif;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #030614; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgba(212,168,83,0.3), rgba(136,204,221,0.3));
+  border-radius: 2px;
+}
+
+/* ===== Text Gradients ===== */
+.text-glow-gold {
+  background: linear-gradient(180deg, #f5e6c8 0%, #d4a853 50%, #c8923a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(212,168,83,0.15);
+}
+
+.text-ice {
+  color: #aaccdd;
+}
+
+/* ===== Holographic Panel ===== */
+.holo-panel {
+  background: rgba(10, 18, 46, 0.6);
+  backdrop-filter: blur(24px) saturate(120%);
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  border: 1px solid rgba(136, 204, 221, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: all 0.4s ease;
+}
+
+.holo-panel:hover {
+  border-color: rgba(212, 168, 83, 0.15);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(212, 168, 83, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ===== Holographic border (subtle) ===== */
+.holo-border {
+  border: 1px solid rgba(136, 204, 221, 0.06);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.holo-border:hover {
+  border-color: rgba(212, 168, 83, 0.12);
+  box-shadow: 0 0 30px rgba(212, 168, 83, 0.03);
+}
+
+/* ===== Frosted Card ===== */
+.frost-card {
+  background: rgba(6, 11, 31, 0.55);
+  backdrop-filter: blur(16px) saturate(110%);
+  -webkit-backdrop-filter: blur(16px) saturate(110%);
+  border: 1px solid rgba(136, 204, 221, 0.06);
+  border-radius: 16px;
+}
+
+/* ===== Glow text ===== */
+.glow-text {
+  animation: glow-breathe 3s ease-in-out infinite;
+}
+
+/* ===== Star layers (fixed backgrounds) ===== */
+.star-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== Page container ===== */
+.page-container {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+}
+
+/* ===== Section divider ===== */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(136, 204, 221, 0.05) 20%,
+    rgba(212, 168, 83, 0.1) 50%,
+    rgba(136, 204, 221, 0.05) 80%,
+    transparent 100%
+  );
+  border: none;
+}
+
+/* ===== Button style ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: rgba(212, 168, 83, 0.1);
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  border-radius: 8px;
+  color: #e8c97a;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+.btn-primary:hover {
+  background: rgba(212, 168, 83, 0.18);
+  border-color: rgba(212, 168, 83, 0.4);
+  box-shadow: 0 0 30px rgba(212, 168, 83, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: transparent;
+  border: 1px solid rgba(136, 204, 221, 0.15);
+  border-radius: 8px;
+  color: #aaccdd;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+.btn-ghost:hover {
+  border-color: rgba(136, 204, 221, 0.35);
+  background: rgba(136, 204, 221, 0.04);
+  transform: translateY(-1px);
+}
+
+/* ===== Badge ===== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid rgba(136, 204, 221, 0.1);
+  border-radius: 20px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #88ccdd;
+  backdrop-filter: blur(8px);
+  background: rgba(136, 204, 221, 0.04);
+}
+
+.tag-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #88ccdd;
+  box-shadow: 0 0 6px #88ccdd;
+}
