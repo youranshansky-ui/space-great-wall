@@ -70,9 +70,11 @@
       :title="chatOpen ? '关闭对话' : '点击和我对话'"
     >
       <div class="relative w-[88px] h-[88px] transition-all duration-300">
-        <canvas ref="canvasRef" class="w-full h-full"></canvas>
+        <canvas ref="canvasRef" class="w-full h-full" :class="{ 'hidden': modelLoadFailed }"></canvas>
+        <!-- Fallback image when model fails -->
+        <img v-if="modelLoadFailed" src="/images/xiaoyueyuetouxiang.png" alt="小月月" class="w-full h-full rounded-full object-cover border-2 border-stellar-gold/30 shadow-[0_0_20px_rgba(212,168,83,0.2)]" />
         <!-- Tooltip on hover -->
-        <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
           <span class="text-[10px] text-stellar-warm font-semibold tracking-wider">和我对话</span>
         </div>
       </div>
@@ -84,6 +86,7 @@
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 // --- Chat state ---
 const chatOpen = ref(false)
@@ -97,6 +100,7 @@ const inputRef = ref(null)
 
 // --- 3D model ---
 const canvasRef = ref(null)
+const modelLoadFailed = ref(false)
 let scene, camera, renderer, model, animationId
 
 function initScene() {
@@ -128,10 +132,12 @@ function initScene() {
 
 function loadModel() {
   const loader = new GLTFLoader()
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
+  loader.setDRACOLoader(dracoLoader)
   loader.load('/space man.glb',
     (gltf) => {
       model = gltf.scene
-      // Center and scale
       const box = new THREE.Box3().setFromObject(model)
       const center = box.getCenter(new THREE.Vector3())
       const size = box.getSize(new THREE.Vector3())
@@ -142,8 +148,17 @@ function loadModel() {
       scene.add(model)
     },
     undefined,
-    (err) => { console.warn('SpaceAgent GLB load error:', err) }
+    (err) => {
+      console.warn('SpaceAgent GLB load error, using fallback:', err)
+      modelLoadFailed.value = true
+    }
   )
+  // Timeout: if model doesn't load in 10s, show fallback
+  setTimeout(() => {
+    if (!model) {
+      modelLoadFailed.value = true
+    }
+  }, 10000)
 }
 
 function animate() {
