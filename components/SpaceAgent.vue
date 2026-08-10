@@ -70,9 +70,7 @@
       :title="chatOpen ? '关闭对话' : '点击和我对话'"
     >
       <div class="relative w-[88px] h-[88px] transition-all duration-300">
-        <canvas ref="canvasRef" class="w-full h-full" :class="{ 'hidden': modelLoadFailed }"></canvas>
-        <!-- Fallback image when model fails -->
-        <img v-if="modelLoadFailed" src="/images/xiaoyueyuetouxiang.png" alt="小月月" class="w-full h-full rounded-full object-cover border-2 border-stellar-gold/30 shadow-[0_0_20px_rgba(212,168,83,0.2)]" />
+        <canvas ref="canvasRef" class="w-full h-full"></canvas>
         <!-- Tooltip on hover -->
         <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full">
           <span class="text-[10px] text-stellar-warm font-semibold tracking-wider">和我对话</span>
@@ -87,7 +85,6 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-
 // --- Chat state ---
 const chatOpen = ref(false)
 const input = ref('')
@@ -100,72 +97,69 @@ const inputRef = ref(null)
 
 // --- 3D model ---
 const canvasRef = ref(null)
-const modelLoadFailed = ref(false)
 let scene, camera, renderer, model, animationId
+
+function webglSupported() {
+  try {
+    const c = document.createElement('canvas')
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')))
+  } catch { return false }
+}
 
 function initScene() {
   const canvas = canvasRef.value
-  if (!canvas) return
+  if (!canvas || !webglSupported()) return
 
-  const size = 88
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+    renderer.setSize(88, 88)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setClearColor(0x000000, 0)
 
-  scene = new THREE.Scene()
+    scene = new THREE.Scene()
+    camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
+    camera.position.set(0, 0.6, 3.5)
+    camera.lookAt(0, 0.3, 0)
 
-  camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
-  camera.position.set(0, 0.6, 3.5)
-  camera.lookAt(0, 0.3, 0)
-
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-  renderer.setSize(size, size)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.setClearColor(0x000000, 0)
-
-  // Lights
-  scene.add(new THREE.AmbientLight(0x445566, 1.8))
-  const key = new THREE.DirectionalLight(0xffeedd, 2.5)
-  key.position.set(2, 3, 4)
-  scene.add(key)
-  const rim = new THREE.DirectionalLight(0x88ccdd, 1.2)
-  rim.position.set(-2, -0.5, -1)
-  scene.add(rim)
+    scene.add(new THREE.AmbientLight(0x445566, 1.8))
+    const key = new THREE.DirectionalLight(0xffeedd, 2.5)
+    key.position.set(2, 3, 4)
+    scene.add(key)
+    const rim = new THREE.DirectionalLight(0x88ccdd, 1.2)
+    rim.position.set(-2, -0.5, -1)
+    scene.add(rim)
+  } catch (e) {
+    console.warn('SpaceAgent WebGL init failed:', e)
+  }
 }
 
 function loadModel() {
+  if (!renderer) return
   const loader = new GLTFLoader()
   const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
+  dracoLoader.setDecoderPath('/draco/')
   loader.setDRACOLoader(dracoLoader)
   loader.load('/space man.glb',
     (gltf) => {
       model = gltf.scene
       const box = new THREE.Box3().setFromObject(model)
       const center = box.getCenter(new THREE.Vector3())
-      const size = box.getSize(new THREE.Vector3())
-      const maxDim = Math.max(size.x, size.y, size.z)
+      const sz = box.getSize(new THREE.Vector3())
+      const maxDim = Math.max(sz.x, sz.y, sz.z)
       const scale = 1.8 / maxDim
       model.scale.setScalar(scale)
       model.position.set(-center.x * scale, -center.y * scale, -center.z * scale)
       scene.add(model)
     },
     undefined,
-    (err) => {
-      console.warn('SpaceAgent GLB load error, using fallback:', err)
-      modelLoadFailed.value = true
-    }
+    (err) => console.warn('SpaceAgent model load error:', err)
   )
-  // Timeout: if model doesn't load in 10s, show fallback
-  setTimeout(() => {
-    if (!model) {
-      modelLoadFailed.value = true
-    }
-  }, 10000)
 }
 
 function animate() {
   animationId = requestAnimationFrame(animate)
-  if (model) {
-    model.rotation.y += 0.003
-  }
+  if (!renderer || !scene || !camera) return
+  if (model) model.rotation.y += 0.003
   renderer.render(scene, camera)
 }
 
