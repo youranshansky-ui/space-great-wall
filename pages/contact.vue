@@ -86,32 +86,42 @@
 </template>
 
 <script setup>
+import staticMessages from '~/data/messages.json'
+
 const form = reactive({ name: '', email: '', message: '' })
 const submitting = ref(false)
 const success = ref(false)
 const msgForm = reactive({ nickname: '', content: '' })
 const msgSubmitting = ref(false)
 const messages = ref([])
-const loading = ref(true)
+const loading = ref(false)
 
 function formatTime(d) { if (!d) return ''; const dt = new Date(d); return dt.toLocaleDateString('zh-CN') + ' ' + dt.toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' }) }
 
-async function submitForm() {
+function submitForm() {
   submitting.value = true; success.value = false
-  try { await $fetch('/api/contact', { method:'POST', body:form }); success.value = true; form.name = ''; form.email = ''; form.message = '' } catch {}
-  submitting.value = false
+  // 静态站点：仅本地模拟发送成功，不真正提交
+  setTimeout(() => {
+    success.value = true
+    form.name = ''; form.email = ''; form.message = ''
+    submitting.value = false
+  }, 400)
 }
 
-async function postMessage() {
-  msgSubmitting.value = true
-  try { await $fetch('/api/messages', { method:'POST', body:{ nickname: msgForm.nickname, content: msgForm.content } }); msgForm.nickname = ''; msgForm.content = ''; await fetchMessages() } catch {}
-  msgSubmitting.value = false
+function postMessage() {
+  if (!msgForm.nickname.trim() || !msgForm.content.trim()) return
+  messages.value.unshift({
+    id: Date.now(),
+    nickname: msgForm.nickname,
+    content: msgForm.content,
+    created_at: new Date().toISOString()
+  })
+  msgForm.nickname = ''
+  msgForm.content = ''
 }
 
-async function fetchMessages() {
-  loading.value = true
-  try { messages.value = await $fetch('/api/messages') || [] } catch {}
-  loading.value = false
+function fetchMessages() {
+  messages.value = [...staticMessages].sort((a, b) => b.id - a.id).slice(0, 50)
 }
 
 onMounted(fetchMessages)

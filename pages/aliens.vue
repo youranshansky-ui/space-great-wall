@@ -524,12 +524,13 @@ const alienChars = ['◈','◆','◇','⬡','⬢','▣','◎','◉','⏣','✧',
 
 async function postMessage() {
   if (!canPost.value) return; sending.value = true; postError.value = ''
-  try { await $fetch('/api/messages', { method:'POST', body:{ nickname: msgNickname.value, content: msgContent.value } })
-    postedMessages.value.unshift({ id: Date.now(), nickname: msgNickname.value, content: msgContent.value, role: msgRole.value,
-      avatarChar: msgRole.value==='外星人' ? alienChars[Math.floor(Math.random()*alienChars.length)] : msgNickname.value.charAt(0),
-      avatarBg: randomAvatar(msgRole.value==='外星人'?200:40), avatarBorder: msgRole.value==='外星人'?'rgba(136,204,221,0.35)':'rgba(212,168,83,0.35)',
-      date: new Date().toISOString().slice(0,10) }); msgContent.value = ''
-  } catch { postError.value = '信号传输失败' } finally { sending.value = false }
+  // 静态站点：仅本地展示，不提交后端
+  postedMessages.value.unshift({ id: Date.now(), nickname: msgNickname.value, content: msgContent.value, role: msgRole.value,
+    avatarChar: msgRole.value==='外星人' ? alienChars[Math.floor(Math.random()*alienChars.length)] : msgNickname.value.charAt(0),
+    avatarBg: randomAvatar(msgRole.value==='外星人'?200:40), avatarBorder: msgRole.value==='外星人'?'rgba(136,204,221,0.35)':'rgba(212,168,83,0.35)',
+    date: new Date().toISOString().slice(0,10) })
+  msgContent.value = ''
+  sending.value = false
 }
 
 // ---- Video Showcase State ----
