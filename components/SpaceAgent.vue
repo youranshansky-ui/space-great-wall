@@ -179,29 +179,57 @@ async function sendMsg() {
   await nextTick()
   scrollToBottom()
 
+  // 预置空的助手消息，边接收边填充
+  const idx = messages.value.push({ role: 'assistant', content: '' }) - 1
+  const payload = messages.value.slice(0, idx).map(m => ({ role: m.role, content: m.content }))
+
   try {
-    const res = await $fetch('/api/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      body: { messages: messages.value.map(m => ({ role: m.role, content: m.content })) }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: payload })
     })
 
-    const reply = res.choices?.[0]?.message?.content || '（未收到回复）'
-    messages.value.push({ role: 'assistant', content: reply })
-  } catch (e) {
-    let errMsg = '通讯故障，请稍后再试。'
-    const d = e?.data
-    if (typeof d === 'string') {
-      errMsg = '错误：' + d
-    } else if (d?.error?.message) {
-      errMsg = '错误：' + d.error.message
-    } else if (d?.error) {
-      errMsg = '错误：' + (typeof d.error === 'string' ? d.error : JSON.stringify(d.error))
-    } else if (e?.statusMessage) {
-      errMsg = '错误：' + e.statusMessage
-    } else if (e?.message) {
-      errMsg = '错误：' + e.message
+    if (!res.ok) {
+      let errMsg = '错误：上游服务请求失败'
+      try {
+        const errData = await res.json()
+        errMsg = '错误：' + (errData?.error || JSON.stringify(errData))
+      } catch {}
+      messages.value[idx].content = errMsg
+      return
     }
-    messages.value.push({ role: 'assistant', content: errMsg })
+
+    // 读取 SSE 流，逐字填充回复
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed.startsWith('data:')) continue
+        const payloadText = trimmed.slice(5).trim()
+        if (!payloadText || payloadText === '[DONE]') continue
+        try {
+          const parsed = JSON.parse(payloadText)
+          const delta = parsed?.choices?.[0]?.delta?.content
+          if (delta) messages.value[idx].content += delta
+        } catch {}
+      }
+    }
+
+    if (!messages.value[idx].content) {
+      messages.value[idx].content = '（未收到回复）'
+    }
+  } catch (e) {
+    messages.value[idx].content = '错误：' + (e?.message || '通讯故障，请稍后再试。')
   } finally {
     loading.value = false
     await nextTick()
