@@ -188,7 +188,11 @@ async function sendMsg() {
     const reply = res.choices?.[0]?.message?.content || '（未收到回复）'
     messages.value.push({ role: 'assistant', content: reply })
   } catch (e) {
-    messages.value.push({ role: 'assistant', content: '通讯故障，请稍后再试。' })
+    let errMsg = '通讯故障，请稍后再试。'
+    if (e?.data?.error) errMsg = '错误：' + e.data.error
+    else if (e?.statusMessage) errMsg = '错误：' + e.statusMessage
+    else if (e?.message) errMsg = '错误：' + e.message
+    messages.value.push({ role: 'assistant', content: errMsg })
   } finally {
     loading.value = false
     await nextTick()
