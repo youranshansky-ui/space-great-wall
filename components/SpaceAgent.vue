@@ -189,9 +189,18 @@ async function sendMsg() {
     messages.value.push({ role: 'assistant', content: reply })
   } catch (e) {
     let errMsg = '通讯故障，请稍后再试。'
-    if (e?.data?.error) errMsg = '错误：' + e.data.error
-    else if (e?.statusMessage) errMsg = '错误：' + e.statusMessage
-    else if (e?.message) errMsg = '错误：' + e.message
+    const d = e?.data
+    if (typeof d === 'string') {
+      errMsg = '错误：' + d
+    } else if (d?.error?.message) {
+      errMsg = '错误：' + d.error.message
+    } else if (d?.error) {
+      errMsg = '错误：' + (typeof d.error === 'string' ? d.error : JSON.stringify(d.error))
+    } else if (e?.statusMessage) {
+      errMsg = '错误：' + e.statusMessage
+    } else if (e?.message) {
+      errMsg = '错误：' + e.message
+    }
     messages.value.push({ role: 'assistant', content: errMsg })
   } finally {
     loading.value = false
