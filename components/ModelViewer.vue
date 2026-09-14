@@ -14,6 +14,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 const props = defineProps({
   src: { type: String, required: true }
@@ -109,6 +110,9 @@ function loadModel() {
   if (!scene) return
 
   const loader = new GLTFLoader()
+  const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('/draco/')
+  loader.setDRACOLoader(dracoLoader)
   loader.load(
     props.src,
     (gltf) => {
